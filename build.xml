@@ -1,0 +1,76 @@
+<project default="cov-report" name="ANTTEST" basedir="." xmlns:jacoco="antlib:org.jacoco.ant">
+
+<property environment="env"/>
+<property name="srcfolder" value="src/" />
+<property name="binfolder" value="bin/" />
+<property name="testbinfolder" value="test/bin/" />
+<property name="testsrcfolder" value="test/src/" />
+<property name="testexecfolder" value="test/jacoco.exec" />
+<property name="reportfolder" value="test/report" />
+
+	<path id="jarfiles">
+		<pathelement location="${env.JUNIT_CS680}" />
+		<pathelement location="${env.HAMCREST_CORE_CS680}" />
+		<pathelement location="${env.JACOCO_CS680}" />
+		<pathelement location="${binfolder}" />
+	</path>
+	
+	<taskdef uri="antlib:org.jacoco.ant" resource="org/jacoco/ant/antlib.xml">
+	<classpath path="${env.JACOCO_CS680}"/>
+	</taskdef>
+	
+	
+	<target name="deletedirs">
+		<delete dir="${binfolder}"/>
+		<delete dir="${testbinfolder}"/>
+		<delete dir="${testexecfolder}"/>
+		<delete dir="${reportfolder}"/>
+	</target>
+
+	<target name="compile" depends="deletedirs">
+		<mkdir dir="${binfolder}"/>
+		<javac includeantruntime="false" srcdir="${srcfolder}" destdir="${binfolder}" />
+		</target>
+
+	<target name="compiletest" depends="compile">
+		<mkdir dir="${testbinfolder}"/>
+		<javac includeantruntime="false" srcdir="${testsrcfolder}" destdir="${testbinfolder}" classpathref="jarfiles"/>
+		</target> 
+
+	<target name="junitrun" depends="compiletest">
+		<jacoco:coverage destfile="${testexecfolder}">
+		<junit printsummary="yes" haltonfailure="no" fork="true">
+			<formatter type="plain" usefile="false" />
+			<classpath>
+			<path refid="jarfiles"/>
+			<pathelement location="${testbinfolder}"/>
+			</classpath>
+			<batchtest>
+			<fileset dir="${testsrcfolder}" includes="*.java"/>
+			</batchtest>
+		</junit>
+		</jacoco:coverage>
+	</target>
+
+	<target name="cov-report" depends="junitrun">
+	    <jacoco:report>
+        	<executiondata>
+            	<file file="${testexecfolder}" />
+            </executiondata>
+
+        <structure name="HW16-Test">
+           	 <classfiles>
+		<fileset dir="${testbinfolder}" />
+                <fileset dir="${binfolder}" />
+            </classfiles>
+            <sourcefiles>
+                <fileset dir="${testsrcfolder}" />
+		<fileset dir="${srcfolder}" />
+            </sourcefiles>
+        </structure>
+        <html destdir="${reportfolder}" />
+    </jacoco:report>
+
+</target>
+
+	</project>
